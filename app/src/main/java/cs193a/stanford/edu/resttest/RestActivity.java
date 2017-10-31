@@ -9,8 +9,16 @@
 package cs193a.stanford.edu.resttest;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.*;
 import android.widget.*;
+
+import com.koushikdutta.async.future.FutureCallback;
+import com.koushikdutta.ion.Ion;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import stanford.androidlib.*;
 
 public class RestActivity extends SimpleActivity {
@@ -19,6 +27,29 @@ public class RestActivity extends SimpleActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_rest);
+    }
+
+    public void chuckNorrisClick(View view){
+        Ion.with(this)
+                .load("http://api.icndb.com/jokes/random")
+                .asString()
+                .setCallback(new FutureCallback<String>() {
+                    //{ "type": "success", "value": { "id": 601, "joke": "Chuck Norris can remember the future.", "categories": [] } }
+                    @Override
+                    public void onCompleted(Exception e, String result) {
+                        //data has arrived
+                        try {
+                            JSONObject json = new JSONObject(result);
+                            JSONObject value = json.getJSONObject("value");
+                            String joke = value.getString("joke");
+
+                            $TV(R.id.output).setText(joke);
+
+                        } catch(JSONException jsone){
+                            Log.wtf("help",jsone);
+                        }
+                    }
+                });
     }
 
 
