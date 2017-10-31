@@ -15,11 +15,14 @@ import android.widget.*;
 
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
+import com.squareup.picasso.Picasso;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import stanford.androidlib.*;
+import stanford.androidlib.xml.XML;
 
 public class RestActivity extends SimpleActivity {
     // auto-generated
@@ -50,6 +53,58 @@ public class RestActivity extends SimpleActivity {
                         }
                     }
                 });
+    }
+
+    public void catClick(View view){
+        GridLayout grid = $(R.id.grid);
+        grid.removeAllViews();
+
+        Ion.with(this)
+                .load("http://thecatapi.com/api/images/get?format=xml&results_per_page=6")
+                .asString()
+                .setCallback(new FutureCallback<String>() {
+                    @Override
+                    public void onCompleted(Exception e, String result) {
+                        //data has arrived
+                        try {
+                            JSONObject json = XML.toJSONObject(result);
+                            JSONArray image = json.getJSONObject("response")
+                                    .getJSONObject("data")
+                                    .getJSONObject("images")
+                                    .getJSONArray("image");
+
+                            for(int i = 0 ; i < image.length() ; i++){
+                                JSONObject img = image.getJSONObject(i);
+                                String url = img.getString("url");
+                                //log(url);
+                                loadImage(url);
+                            }
+
+
+
+                        } catch(JSONException jsone){
+                            Log.wtf("help",jsone);
+                        }
+                    }
+                });
+    }
+
+    public void loadImage(String url){
+        ImageView imgView = new ImageView(this);
+        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+        );
+
+        imgView.setLayoutParams(params);
+
+        GridLayout grid = $(R.id.grid);
+        grid.addView(imgView);
+
+        Picasso.with(this)
+                .load(url)
+                .resize(400,400)
+                .into(imgView);
     }
 
 
